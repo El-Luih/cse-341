@@ -1,0 +1,28 @@
+{
+  "name": "cse-341",
+  "version": "1.0.0",
+  "description": "Luis Maradiaga CSE 341 Assignments",
+  "homepage": "https://github.com/El-Luih/cse-341#readme",
+  "bugs": {
+    "url": "https://github.com/El-Luih/cse-341/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/El-Luih/cse-341.git"
+  },
+  "license": "ISC",
+  "author": "Luis Maradiaga",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --env-file=.env server.js",
+    "dev": "nodemon --env-file=.env server.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
