@@ -22,4 +22,6 @@ app.get('/trails', async (req, res) => {
     }
 })
 
+//const books = await getDb().collection("books").find({}).toArray();
+
 export default app;
