@@ -35,6 +35,11 @@ const parseRouteId = (routeValue) => {
     return { valid: true, value: normalizedValue };
 };
 
+const authorExists = async (authorId) => {
+    const database = await getDb();
+    return database.collection("authors").findOne({ id: authorId });
+};
+
 const getBooksHandler = async (req, res) => {
     if (req.accepts("application/json") === false) {
         return res.status(406).json({ message: "Unsupported response format" });
@@ -118,8 +123,11 @@ const createBookHandler = async (req, res) => {
             return res.status(409).json({ message: "Book id already exists" });
         }
 
-        // Author validation will be added in a later update.
-        // This check is intentionally left out for the current book issue scope.
+        const existingAuthor = await authorExists(bookData.authorId);
+
+        if (!existingAuthor) {
+            return sendValidationError(res, [{ field: "authorId", issue: "must reference an existing author" }]);
+        }
 
         const newBook = {
             id: bookData.id,
@@ -199,8 +207,13 @@ const updateBookByIdHandler = async (req, res) => {
             return res.status(404).json({ message: "Book not found" });
         }
 
-        // Author validation will be added in a later update.
-        // This check is intentionally left out for the current book issue scope.
+        if (Object.prototype.hasOwnProperty.call(updates, "authorId")) {
+            const existingAuthor = await authorExists(updates.authorId);
+
+            if (!existingAuthor) {
+                return sendValidationError(res, [{ field: "authorId", issue: "must reference an existing author" }]);
+            }
+        }
 
         const sanitizedUpdates = {};
 
