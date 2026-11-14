@@ -23,7 +23,6 @@ All route handlers must validate incoming data on the server before writing to t
 - duplicate IDs
 - invalid route parameters
 - malformed numeric IDs
-- invalid `authorId` references on book create and update
 - duplicate records
 - unsupported media types or content negotiation where applicable
 
@@ -39,8 +38,8 @@ Example error object:
       "message": "Validation failed",
       "details": [
         {
-          "field": "authorId",
-          "issue": "must reference an existing author"
+          "field": "title",
+          "issue": "must be a non-empty string"
         }
       ]
     }
@@ -75,9 +74,9 @@ Books will continue to use custom integer IDs instead of MongoDB `_id` values fo
 
 ### Relationship to Authors
 
-Each book will identify its author with an `authorId` field. The value of `authorId` must match the custom `id` value of an existing author document.
+Each book will identify its author with an `authorId` field. The value of `authorId` is stored on the book document so the relationship is available, but the actual validation that the `authorId` matches an existing author document is deferred to Feature 2, after the `authors` collection exists.
 
-When creating or updating a book, the API should reject the request with a `400` status code if the submitted `authorId` does not match an existing author.
+This feature does not yet enforce referential integrity between the `books` and `authors` collections.
 
 ### Routes
 
@@ -132,7 +131,6 @@ Validation requirements:
 - `authorId` must be an integer
 - `title` must be a non-empty string
 - `publicationDate` must be a valid string date value
-- `authorId` must match an existing author
 - duplicate `id` values are not allowed
 
 Success:
@@ -144,7 +142,6 @@ Errors:
 
 - `400` if a required field is missing or invalid
 - `409` if the `id` already exists
-- `400` if the `authorId` does not match an existing author
 - `415` if the request uses an unsupported content type
 - `406` if the client requests an unsupported response format
 - `405` if the HTTP method is not supported for this route
@@ -186,7 +183,6 @@ Errors:
 - `400` if the request body is empty or contains no valid update fields
 - `400` if a provided `id` field is included in the body
 - `400` if a required field is invalid or malformed
-- `400` if the `authorId` does not match an existing author
 - `404` if no book exists with that id
 - `406` if the client requests an unsupported response format
 - `405` if the HTTP method is not supported for this route
@@ -218,6 +214,10 @@ Swagger must document every book route, including validation behavior and the er
 
 After implementation, the book routes must work locally and from the deployed Render application. The deployed Swagger page at `/swagger-docs` must allow someone to test every book route from the browser.
 
+### Security Note (Deferred)
+
+This feature does not yet address production security concerns around exposing write-capable routes in the Swagger UI. Because Swagger UI can send real HTTP requests, write operations such as `POST`, `PUT`, and `DELETE` should be reviewed and protected in a later update, such as by disabling Swagger in production or restricting mutating routes behind authentication and authorization.
+
 ---
 
 ## Feature 2: Author Collection and Functional CRUD Operations
@@ -240,9 +240,9 @@ Authors will also use custom integer IDs instead of MongoDB `_id` values for rou
 
 ### Relationship to Books
 
-Each author document has a custom `id` value that is referenced by the `authorId` field on book documents. The author `id` must be unique within the `authors` collection, and each book's `authorId` must match an existing author document.
+Each author document has a custom `id` value that is referenced by the `authorId` field on book documents. The author `id` must be unique within the `authors` collection.
 
-An author cannot be deleted while there are still books that reference that author. If an author is still associated with any books, the delete operation must fail.
+After the `authors` collection is implemented, the book create and update logic should validate that each book's `authorId` matches an existing author document. An author cannot be deleted while there are still books that reference that author. If an author is still associated with any books, the delete operation must fail.
 
 ### Routes
 

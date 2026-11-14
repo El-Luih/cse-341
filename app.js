@@ -10,7 +10,7 @@ const app = express();
 //MIDDLEWARE
 app.use(express.json());
 app.use(router);
-app.use("/swagger-doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/swagger-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 //ROUTES
 app.get('/', (req , res) => {
@@ -18,6 +18,5 @@ app.get('/', (req , res) => {
 });
 
 
-//const books = await getDb().collection("books").find({}).toArray();
 
 export default app;
