@@ -15,7 +15,7 @@
     "/books": {
       "get": {
         "summary": "Return every book in the collection",
-        "description": "Book-only feature scope. Author referential validation is intentionally deferred to a later update.",
+        "description": "Books are validated against the author collection when creating or updating records.",
         "tags": [
           "Books"
         ],
@@ -33,7 +33,7 @@
       },
       "post": {
         "summary": "Create a new book",
-        "description": "Book-only feature scope. This does not yet validate that authorId matches an existing author document.",
+        "description": "Validates the required book fields and ensures authorId matches an existing author in the authors collection.",
         "tags": [
           "Books"
         ],
@@ -95,7 +95,7 @@
     "/books/{id}": {
       "get": {
         "summary": "Return a single book by custom integer id",
-        "description": "Book-only feature scope. Author validation for related records is deferred to a later update.",
+        "description": "Returns a single book and validates the route id before lookup.",
         "tags": [
           "Books"
         ],
@@ -129,7 +129,7 @@
       },
       "put": {
         "summary": "Update an existing book using partial update semantics",
-        "description": "Book-only feature scope. This route does not yet validate that authorId matches an existing author document.",
+        "description": "Validates the update payload and authorId against the authors collection before applying changes.",
         "tags": [
           "Books"
         ],
@@ -210,6 +210,201 @@
           },
           "406": {
             "description": "Unsupported response format"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/authors": {
+      "get": {
+        "summary": "Return every author in the collection",
+        "tags": [
+          "Authors"
+        ],
+        "responses": {
+          "200": {
+            "description": "Authors returned successfully"
+          },
+          "406": {
+            "description": "Unsupported response format"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new author",
+        "tags": [
+          "Authors"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "birth"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "birth": {
+                    "type": "integer"
+                  }
+                },
+                "example": {
+                  "id": 2,
+                  "name": "Jane Doe",
+                  "birth": 1988
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Author created successfully"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "409": {
+            "description": "Duplicate author id"
+          },
+          "415": {
+            "description": "Unsupported media type"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/authors/{id}": {
+      "get": {
+        "summary": "Return a single author by custom integer id",
+        "tags": [
+          "Authors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Author returned successfully"
+          },
+          "400": {
+            "description": "Invalid route parameter"
+          },
+          "404": {
+            "description": "Author not found"
+          },
+          "406": {
+            "description": "Unsupported response format"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an existing author using partial update semantics",
+        "tags": [
+          "Authors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "birth": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Author updated successfully"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "404": {
+            "description": "Author not found"
+          },
+          "415": {
+            "description": "Unsupported media type"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an author by custom integer id",
+        "tags": [
+          "Authors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Author deleted successfully and the deleted record was returned"
+          },
+          "400": {
+            "description": "Invalid route parameter"
+          },
+          "404": {
+            "description": "Author not found"
+          },
+          "406": {
+            "description": "Unsupported response format"
+          },
+          "409": {
+            "description": "Author is still referenced by a book"
           },
           "500": {
             "description": "Internal server error"
