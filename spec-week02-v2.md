@@ -242,9 +242,19 @@ Authors will also use custom integer IDs instead of MongoDB `_id` values for rou
 
 Each author document has a custom `id` value that is referenced by the `authorId` field on book documents. The author `id` must be unique within the `authors` collection.
 
-After the `authors` collection is implemented, the book create and update logic should validate that each book's `authorId` matches an existing author document. An author cannot be deleted while there are still books that reference that author. If an author is still associated with any books, the delete operation must fail.
+After the `authors` collection is implemented, the book create and update logic must validate that each book's `authorId` matches an existing author document. This validation is required for both `POST /books` and `PUT /books/:id` and must return `400` when the `authorId` is not found. An author cannot be deleted while there are still books that reference that author. If an author is still associated with any books, the delete operation must fail.
 
 ### Routes
+
+#### POST /books (author validation update)
+
+Purpose: Confirm that book creation and updates validate `authorId` against the `authors` collection once the authors feature exists.
+
+Validation requirement:
+
+- `authorId` must match an existing author document
+- `POST /books` must reject invalid `authorId` values with `400`
+- `PUT /books/:id` must reject invalid `authorId` values with `400`
 
 #### GET /authors
 
@@ -376,11 +386,19 @@ Errors:
 
 ### Swagger Documentation
 
-Swagger must document every author route, including validation behavior and the error object format.
+Swagger must document every author route, including validation behavior and the error object format. The book routes must also document the `authorId` validation requirement once the `authors` collection is implemented.
 
 ### Deployment Expectations
 
 After implementation, the author routes must work locally and from the deployed Render application. The deployed Swagger page at `/swagger-docs` must allow someone to test every author route from the browser.
+
+### Testing Plan
+
+- `POST /books` returns `400` when `authorId` does not match an existing author
+- `PUT /books/:id` returns `400` when `authorId` does not match an existing author
+- `POST /books` succeeds with `201` when `authorId` matches an existing author
+- `PUT /books/:id` succeeds with `200` when `authorId` matches an existing author
+- `DELETE /authors/:id` returns `409` when books still reference that author
 
 ---
 
@@ -409,6 +427,18 @@ The API should consistently return JSON error objects shaped like:
 
     {
       "message": "Author cannot be deleted because related books still exist"
+    }
+
+For book create and update when the authors feature exists, the API should also return a validation error shaped like:
+
+    {
+      "message": "Validation failed",
+      "details": [
+        {
+          "field": "authorId",
+          "issue": "must reference an existing author"
+        }
+      ]
     }
 
 Additional details may be included as needed:
